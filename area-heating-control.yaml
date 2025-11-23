@@ -1,6 +1,6 @@
 blueprint:
   name: Area Heating Control
-  author: Visual Pirates
+  author: mariusvslprts
   domain: automation
   homeassistant:
     min_version: "2025.1.0"
