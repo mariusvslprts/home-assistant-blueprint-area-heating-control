@@ -12,12 +12,12 @@ discovers devices & sensors based on the provided area.
 **Features:**
 - 🗓️ Heating sheduler support
 - 🌱 Eco + 🛋️ comfort temperature settings
-- Entity auto discovery (thermostats + themperature sensors + window sensors) based on area
+- 🕵️ Entity auto discovery (thermostats + themperature sensors + window sensors) based on area
 - ⚙️ Thermostat calibration (requires external temperature sensors)
 - 🪟 Window open detection to stop heating while windows are open (requires window sensors)
 - 👥 Person detection (Uses eco temperature instead of comfort temperature when nobody is at home)
 - 🚶 Presence detection (Alows to overrides person detection status when a presence sensor provided)
-- Central heating system status support (disables automation while your central heating system is off)
+- ♨️ Central heating system status support (disables automation while your central heating system is off)
 - ⚔️ Liming protection to prevent your trvs from sticking
 - ...
 
@@ -29,8 +29,18 @@ To use this Blueprint use the following button to import the Blueprint into your
 
 [![my-homeassistant](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fmariusvslprts%2Fhome-assistant-blueprint-area-heating-control%2Fblob%2Fmain%2Farea-heating-control.yaml)
 
-or follow the official Home Assistant documentation: [Importing Blueprints](https://www.home-assistant.io/docs/automation/using_blueprints/#importing-blueprints) by using the following URL: 
+or follow the official Home Assistant documentation [Importing Blueprints](https://www.home-assistant.io/docs/automation/using_blueprints/#importing-blueprints) and use the following url: 
 
 ```
 https://github.com/mariusvslprts/home-assistant-blueprint-area-heating-control/blob/main/area-heating-control.yaml
 ```
+
+Documentation
+-------------
+
+Coming soon...
+
+
+License
+-------
+[MIT](LICENSE)
