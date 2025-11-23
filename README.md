@@ -15,8 +15,8 @@ discovers devices & sensors based on the provided area.
 - 🕵️ Entity auto discovery (thermostats + themperature sensors + window sensors) based on area
 - ⚙️ Thermostat calibration (requires external temperature sensors)
 - 🪟 Window open detection to stop heating while windows are open (requires window sensors)
-- 👥 Person detection (Uses eco temperature instead of comfort temperature when nobody is at home)
-- 🚶 Presence detection (Alows to overrides person detection status when a presence sensor provided)
+- 👥 Person detection (uses eco temperature instead of comfort temperature when nobody is at home)
+- 🚶 Presence detection (allows to overrides person detection status when a presence sensor provided)
 - ♨️ Central heating system status support (disables automation while your central heating system is off)
 - ⚔️ Liming protection to prevent your trvs from sticking
 - ...
