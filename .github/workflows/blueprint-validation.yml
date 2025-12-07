@@ -1,0 +1,19 @@
+name: Blueprint Validation
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install hass-cli
+        run: pip install homeassistant-cli
+
+      - name: Validate blueprints
+        run: |
+          for file in $(find . -name "*.yaml"); do
+            echo "Checking $file"
+            hass-cli blueprint validate "$file"
+          done
