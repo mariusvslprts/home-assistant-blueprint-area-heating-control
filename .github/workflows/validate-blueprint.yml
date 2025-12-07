@@ -59,7 +59,7 @@ jobs:
         run: python3 -m homeassistant --config ./config --script check_config | tee ha-check.log
       - name: Upload Home Assistant Logs (if failed)
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ha-config-${{ matrix.ha_version }}
           path: ha-check.log
