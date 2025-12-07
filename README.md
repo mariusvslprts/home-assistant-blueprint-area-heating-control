@@ -1,4 +1,4 @@
-# Home Assistant Blueprint: Area heating control
+# Home Assistant Blueprint: Area Heating Control
 
 Area based heating control blueprint for Home Assistant. 
 
@@ -7,11 +7,11 @@ discovers devices & sensors based on the provided area.
 
 > [!IMPORTANT]
 > Areas must have at least one `climate` entity assinged in order to get displayed in the area selection.
-> Make sure you have assigned all thermostats & window sensors before using this blueprint.
+> Make sure you have assigned your thermostats & window sensors before using this blueprint.
 
 **Features:**
 - 🗓️ Heating sheduler support
-- 🌱 Eco + 🛋️ comfort temperature settings
+- 🌱 Eco + 🛋️ comfort temperature settings (built-in or external entities)
 - 🕵️ Entity auto discovery (thermostats + themperature sensors + window sensors) based on area
 - ⚙️ Thermostat calibration (requires external temperature sensors)
 - 🪟 Window open detection to stop heating while windows are open (requires window sensors)
@@ -19,11 +19,8 @@ discovers devices & sensors based on the provided area.
 - 🚶 Presence detection (allows to overrides person detection status when a presence sensor provided)
 - ♨️ Central heating system status support (disables automation while your central heating system is off)
 - ⚔️ Liming protection to prevent your trvs from sticking
-- ...
 
-
-Installation
-------------
+## Installation
 
 To use this Blueprint use the following button to import the Blueprint into your Home Assistant instance
 
@@ -35,7 +32,14 @@ or follow the official Home Assistant documentation [Importing Blueprints](https
 https://github.com/mariusvslprts/home-assistant-blueprint-area-heating-control/blob/main/area-heating-control.yaml
 ```
 
-Documentation
--------------
+## Documentation
 
 Coming soon...
+
+
+## Support
+
+Feel free to open an Issue or make a Pull Request if you find any bugs or have ideas on how to optimize the the blueprint. 
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/A0A71PVJ28)
+
