@@ -6,10 +6,12 @@ on:
     paths:
       - "**/*.yaml"
       - "**/*.yml"
+      - "!/.github/**"
   push:
     paths:
       - "**/*.yaml"
       - "**/*.yml"
+      - "!/.github/**"
 
 jobs:
   validate_syntax:
