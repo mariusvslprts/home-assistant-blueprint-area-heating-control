@@ -34,11 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Determine Python version
-        id: python_version
+        id: detect_python_version
         run: |
           DEV_BRANCH="dev"
-          PY_VER_FILE=".python-version"
           REQ_FILE="requirements_all.txt"
+          PY_VER_FILE=".python-version"
 
           if [ "${{ matrix.ha_version }}" = "dev" ]; then
             git fetch origin $DEV_BRANCH
@@ -48,7 +48,7 @@ jobs:
           if [ -f "$PY_VER_FILE" ]; then
             PY_VER="$(cat "$PY_VER_FILE")"
           elif [ -f "$REQ_FILE" ]; then
-            PY_VER=$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "requirements_all.txt" | head -n1)
+            PY_VER="$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "$REQ_FILE" | head -n1)""
           fi
 
           if [ -z "$PY_VER" ]; then
@@ -61,12 +61,12 @@ jobs:
 
           echo "python_version=$PY_VER" >> $GITHUB_OUTPUT
 
-          echo "Detected Python version: ${{ steps.python_version.outputs.python_version }}"
+          echo "Detected Python version: $PY_VER"
 
-      - name: Setup Python
+      - name: Setup Python (${{ steps.detect_python_version.outputs.python_version }})
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ steps.python_version.outputs.python_version }}
+          python-version: ${{ steps.detect_python_version.outputs.python_version }}
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
