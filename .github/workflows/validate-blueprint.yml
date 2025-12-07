@@ -1,0 +1,64 @@
+name: Validate Home Assistant Blueprints
+
+on:
+  pull_request:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+  push:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+
+jobs:
+  validate_syntax:
+    name: Validate Blueprint Synatx + Schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: sudo apt-get install -y yamllint
+      - name: Validate YAML Syntax
+        run: yamllint -s $(git ls-files '*.yaml' '*.yml')
+      - name: Validate Blueprint schema
+        run: python3 .github/scripts/validate_blueprint_schema.py
+
+  validate_home_assistant_compatibility:
+    name: Validate Home Assistant compatibility
+    runs-on: ubuntu-latest
+    needs: validate_syntax
+    strategy:
+      matrix:
+        ha_version: ["stable", "dev"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ha-${{ matrix.ha_version }}-${{ hashFiles('**/*.yaml') }}
+      - name: Install Home Assistant (${{ matrix.ha_version }})
+        run: |
+          pip install --upgrade pip
+          if [ "${{ matrix.ha_version }}" = "stable" ]; then
+            pip install homeassistant
+          else
+            pip install git+https://github.com/home-assistant/core.git@dev
+          fi
+      - name: Prepare Home Assistant Configuration
+        run: |
+          mkdir -p ./config/blueprints/automation/blueprints
+          cp -R ./*.yaml ./config/blueprints/automation/blueprints/ 2>/dev/null || true
+          cp -R ./*.yml ./config/blueprints/automation/blueprints/ 2>/dev/null || true
+      - name: Run Home Assistant check_config
+        run: python3 -m homeassistant --config ./config --script check_config | tee ha-check.log
+      - name: Upload Home Assistant Logs (if failed)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ha-config-${{ matrix.ha_version }}
+          path: ha-check.log
