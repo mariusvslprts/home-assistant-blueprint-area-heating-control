@@ -48,7 +48,7 @@ jobs:
           if [ -f "$PY_VER_FILE" ]; then
             PY_VER="$(cat "$PY_VER_FILE")"
           elif [ -f "$REQ_FILE" ]; then
-            PY_VER="$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "$REQ_FILE" | head -n1)""
+            PY_VER="$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "$REQ_FILE" | head -n1)"
           fi
 
           if [ -z "$PY_VER" ]; then
