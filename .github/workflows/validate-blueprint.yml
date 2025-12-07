@@ -33,32 +33,31 @@ jobs:
         ha_version: ["stable", "dev"]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Determine Python version
         id: detect_python_version
         run: |
-          DEV_BRANCH="dev"
-          REQ_FILE="requirements_all.txt"
-          PY_VER_FILE=".python-version"
+          set -e
+
+          HA_REPO="https://raw.githubusercontent.com/home-assistant/core"
 
           if [ "${{ matrix.ha_version }}" = "dev" ]; then
-            git fetch origin $DEV_BRANCH:$DEV_BRANCH
-            git checkout $DEV_BRANCH
+              BRANCH="dev"
+          else
+              BRANCH="master"
           fi
 
-          if [ -f "$PY_VER_FILE" ]; then
-            PY_VER="$(cat "$PY_VER_FILE")"
-          elif [ -f "$REQ_FILE" ]; then
-            PY_VER="$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "$REQ_FILE" | head -n1)"
+          PY_VER=$(curl -s -f $HA_REPO/$BRANCH/.python-version || true)
+
+          if [ -z "$PY_VER" ]; then
+              REQ_FILE=$(curl -s -f $HA_REPO/$BRANCH/requirements_all.txt || true)
+
+              if [ -n "$REQ_FILE" ]; then
+                  PY_VER=$(echo "$REQ_FILE" | grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' | head -n1)
+              fi
           fi
 
           if [ -z "$PY_VER" ]; then
             PY_VER="3.12"
-          fi
-
-          if [ "${{ matrix.ha_version }}" = "dev" ]; then
-            git checkout -
           fi
 
           echo "python_version=$PY_VER" >> $GITHUB_OUTPUT
