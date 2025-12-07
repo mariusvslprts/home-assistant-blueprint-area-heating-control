@@ -1,0 +1,1599 @@
+blueprint:
+  name: Area Heating Control
+  author: mariusvslprts
+  domain: automation
+  homeassistant:
+    min_version: "2025.1.0"
+  description: >
+    Advanced area based heating control.
+
+
+    **Version:**  1.0.2
+  input:
+    input_area_id:
+      name: Area
+      description: >
+        Area which should be controlled within your automation.
+      selector:
+        area:
+          entity:
+            domain:
+              - climate
+
+    section_area_temperature_settings:
+      name: Temperature Settings
+      icon: mdi:home-thermometer-outline
+      collapsed: true
+      input:
+        input_area_temperature_settings_eco_static:
+          name: Static Eco Temperature
+          description: >
+            Static eco temperature setting for your area
+          default: 19
+          selector:
+            number:
+              min: 5.0
+              max: 30.0
+              step: 0.5
+              mode: box
+              unit_of_measurement: °C
+
+        input_area_temperature_settings_comfort_static:
+          name: Static Comfort Temperature
+          description: >
+            Static Comfort temperature setting for your area
+          default: 22
+          selector:
+            number:
+              min: 5.0
+              max: 30.0
+              step: 0.5
+              mode: box
+              unit_of_measurement: °C
+
+        input_area_temperature_settings_eco_entity:
+          name: Eco Temperature
+          description: >
+            An entity which stores the actual eco temperature setting of your area
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_number
+              multiple: false
+
+        input_area_temperature_settings_comfort_entity:
+          name: Comfort Temperature
+          description: >
+            An entity which stores the actual comfort temperature setting of your area
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_number
+              multiple: false
+
+    section_area_thermostats:
+      name: Thermostats
+      icon: mdi:thermostat
+      collapsed: true
+      input:
+        input_area_thermostat_valves:
+          name: Radiator Thermostats
+          description: >
+            List of radiator thermostats inside your area to be controlled by 
+            your automation.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - climate
+                  supported_features:
+                    - climate.ClimateEntityFeature.TARGET_TEMPERATURE
+              multiple: true
+
+        input_area_thermostat_controllers:
+          name: Thermostat Controllers
+          description: >
+            Thermostat controllers which allows adjustments of your temperature 
+            settings
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - climate
+                  supported_features:
+                    - climate.ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+
+    section_area_thermostat_calibration:
+      name: Calibration
+      icon: mdi:tune-variant
+      collapsed: true
+      input:
+        input_area_thermostat_calibration_delta:
+          name: Calibration Delta
+          description: >
+            If the difference between the thermostat temperature and the area 
+            temperature is greather or less than the calibration delta the 
+            calibration routine of your automation will be triggered. 
+
+
+            The lower the delta the often calibration routine gets triggered.
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 5
+              step: 0.1
+              mode: slider
+              unit_of_measurement: °C
+
+        input_area_thermostat_calibration_threshold:
+          name: Calibration Timeout
+          description: >
+            Defines a timeout to decrease the amount of calibration calls if 
+            temperature changes too much.
+          default:
+            hours: 0
+            minutes: 1
+            seconds: 0
+          selector:
+            duration:
+
+        input_area_thermostat_calibration_reset:
+          name: Calibration Reset Trigger
+          description: >
+            Forces a reset of your radiator thermostat calibration if the specified 
+            entity turns on
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_boolean
+                    - binary_sensor
+
+        input_area_temperature_sensors:
+          name: Temperature Sensors
+          description: >
+            A list of temperature sensors inside your area to calcluate an 
+            acurate room temperature.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - sensor
+                  device_class:
+                    - temperature
+              multiple: true
+
+    section_area_thermostat_maintenance:
+      name: Maintenance
+      icon: mdi:tools
+      collapsed: true
+      input:
+        input_area_thermostat_maintenance_limescale_protection:
+          name: Limescale Protection
+          description: >
+            Prevents your radiator thermostats from sticking by forcing them to 
+            their max temperature to open the valve for one minute.
+          default: off
+          selector:
+            boolean:
+
+        input_area_thermostat_maintenance_limescale_protection_day:
+          name: Limescale Protection - Day
+          description: >
+            Day of the week for the execution of the liming protection routine.
+          default: "Fri"
+          selector:
+            select:
+              options:
+                - label: Monday
+                  value: Mon
+                - label: Tuesday
+                  value: Tue
+                - label: Wednesday
+                  value: Wed
+                - label: Thursday
+                  value: Thu
+                - label: Friday
+                  value: Fri
+                - label: Saturday
+                  value: Sat
+                - label: Sunday
+                  value: Sun
+
+        input_area_thermostat_maintenance_limescale_protection_time:
+          name: Limescale Protection - Time
+          description: Time of the day for the exectuion of the liming protection routine.
+          default: "12:00:00"
+          selector:
+            time:
+
+    section_area_windows:
+      name: Windows
+      icon: mdi:window-closed-variant
+      collapsed: true
+      input:
+        input_area_windows:
+          name: Windows
+          description: >
+            A list of windows inside your area which should be monitored by your
+            automation.
+
+
+            Note: All thermostats will be set to off mode or at least to their 
+            minimum temperature (depending on their supported features) once one 
+            of the entities is detected as open.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - binary_sensor
+                  device_class:
+                    - door
+                    - window
+              multiple: true
+
+        input_area_windows_opening_event_threshold:
+          name: Reaction Time - Window opening
+          description: >
+            Reaction time of the automation to the opening event of windows within the area.
+          default:
+            hours: 0
+            minutes: 1
+            seconds: 0
+          selector:
+            duration:
+
+        input_area_windows_closing_event_threshold:
+          name: Reaction Time - Window closing
+          description: >
+            Reaction time of the automation to the closing event of windows within the area.
+          default:
+            hours: 0
+            minutes: 1
+            seconds: 0
+          selector:
+            duration:
+
+    section_area_heating_scheduling:
+      name: Scheduling
+      icon: mdi:clock-outline
+      collapsed: true
+      input:
+        input_area_heating_schedules:
+          name: Heating Schedules
+          description: >
+            Heating schedules allow you to dynamicly adjust your temperature 
+            settings based on current day and time.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - schedule
+              multiple: true
+
+    section_area_presence_detection:
+      name: Presence Detection
+      icon: mdi:location-enter
+      collapsed: true
+      input:
+        input_area_presence_sensor:
+          name: Presence Sensor
+          description: >
+            List of presence sensors within your area to active heating when 
+            someone is inside your selected area.
+          default:
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - binary_sensor
+                    - input_boolean
+                  device_class:
+                    - occupancy
+              multiple: false
+
+        input_area_presence_sensor_on_event_threshold:
+          name: Reaction Time - Presence detected
+          description: >
+            Duration for which the presence sensor must detect any presence to 
+            set your comfort temperature
+          default:
+            hours: 0
+            minutes: 5
+            seconds: 0
+          selector:
+            duration:
+
+        input_area_presence_sensor_off_event_threshold:
+          name: Reaction Time - Presence clear
+          description: >
+            Duration for which the presence sensor must clear to set your eco 
+            temperature
+          default:
+            hours: 0
+            minutes: 5
+            seconds: 0
+          selector:
+            duration:
+
+    section_general_heating_system:
+      name: Heating System
+      icon: mdi:water-boiler
+      collapsed: true
+      input:
+        input_heating_system_heating_mode:
+          name: Heating Mode
+          description: >
+            A entity which represents the heating mode status of your heating system.
+          default:
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - binary_sensor
+                    - input_boolean
+
+        input_heating_system_event_threshold:
+          name: Reaction time - Heating System Events
+          description: >
+            Reaction time to status changes of your heating system.
+          default:
+            hours: 0
+            minutes: 2
+            seconds: 0
+          selector:
+            duration:
+
+    section_general_persons:
+      name: Persons
+      icon: mdi:account-multiple
+      collapsed: true
+      input:
+        input_persons:
+          name: Persons
+          description: >
+            A list of persons used for persence detection.
+          default: []
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - person
+              multiple: true
+
+        input_persons_entering_home_event_threshold:
+          name: Reaction Time - People Entering Home
+          description: >
+            Duration for which someone must be at home to activate the heating.
+          default:
+            hours: 0
+            minutes: 1
+            seconds: 0
+          selector:
+            duration:
+
+        input_persons_leaving_home_event_threshold:
+          name: Reaction Time - People Leaving Home
+          description: >
+            Duration for which someone must be away from home to deactive the 
+            heating.
+          default:
+            hours: 0
+            minutes: 1
+            seconds: 0
+          selector:
+            duration:
+
+        input_guest_mode:
+          name: Guest Mode
+          description: >
+            Selected entity will be treated like a person and used for presence 
+            dectection. 
+
+
+            Supports the following states:
+              * `on`: Simulates guest/person is at home 
+              * `off`: Simulates guest/person is away
+          default:
+          selector:
+            entity:
+              filter:
+                - domain:
+                    - input_boolean
+                    - binary_sensor
+
+    section_general_advanced:
+      name: Advanced Settings
+      icon: mdi:cog-box
+      collapsed: true
+      input:
+        input_automation_action_delay:
+          name: Action Delay
+          description: >
+            Adds a generic delay between actions calls of your automation.
+          default:
+            hours: 0
+            minutes: 0
+            seconds: 0
+          selector:
+            duration:
+
+        input_automation_startup_delay:
+          name: Startup Delay
+          description: >
+            Adds a delay to the startup of your automation.
+
+
+            This could be required if required integrations have not yet been
+            loaded or certain sensors have not yet been initialized, directly 
+            after a Home Assistant restart.
+          default:
+            hours: 0
+            minutes: 0
+            seconds: 0
+          selector:
+            duration:
+
+        input_automation_log_level:
+          name: Log Level
+          description: >
+            Allows you to adjust the log level of your automation for troubleshooting 
+            purposes.
+
+
+            We recommend to add the blueprint namespace (`blueprint.vslrpts.area_heating_control`) 
+            to your `logger` integration instead of adjusting the log level.
+          default: debug
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Debug
+                  value: debug
+                - label: Info
+                  value: info
+                - label: Warning
+                  value: warning
+                - label: Error
+                  value: error
+                - label: Fatal
+                  value: fatal
+                - label: Critical
+                  value: critical
+  source_url: http://10.0.20.10:3000/mseitz/home-assistant-blueprint-area-heating-control/raw/branch/main/area-heating-control.yaml
+
+trigger_variables:
+  # area > general
+  input_area_id: !input input_area_id
+
+  # area > temperature settings
+  input_area_temperature_settings_eco_static: !input input_area_temperature_settings_eco_static
+  input_area_temperature_settings_comfort_static: !input input_area_temperature_settings_comfort_static
+  input_area_temperature_settings_eco_entity: !input input_area_temperature_settings_eco_entity
+  input_area_temperature_settings_comfort_entity: !input input_area_temperature_settings_comfort_entity
+
+  # area > thermostats
+  input_area_thermostat_valves: !input input_area_thermostat_valves
+  input_area_thermostat_controllers: !input input_area_thermostat_controllers
+
+  # area > thermostat calibaration
+  input_area_thermostat_calibration_delta: !input input_area_thermostat_calibration_delta
+  input_area_thermostat_calibration_threshold: !input input_area_thermostat_calibration_threshold
+  input_area_thermostat_calibration_reset: !input input_area_thermostat_calibration_reset
+  input_area_temperature_sensors: !input input_area_temperature_sensors
+
+  # area > thermostat maintenance
+  input_area_thermostat_maintenance_limescale_protection: !input input_area_thermostat_maintenance_limescale_protection
+  input_area_thermostat_maintenance_limescale_protection_day: !input input_area_thermostat_maintenance_limescale_protection_day
+  input_area_thermostat_maintenance_limescale_protection_time: !input input_area_thermostat_maintenance_limescale_protection_time
+
+  # area > windows
+  input_area_windows: !input input_area_windows
+  input_area_windows_opening_event_threshold: !input input_area_windows_opening_event_threshold
+  input_area_windows_closing_event_threshold: !input input_area_windows_closing_event_threshold
+
+  # area > heating scheduling
+  input_area_heating_schedules: !input input_area_heating_schedules
+
+  # area > persence sensors
+  input_area_presence_sensor: !input input_area_presence_sensor
+  input_area_presence_sensor_on_event_threshold: !input input_area_presence_sensor_on_event_threshold
+  input_area_presence_sensor_off_event_threshold: !input input_area_presence_sensor_off_event_threshold
+
+  # general > heating system
+  input_heating_system_heating_mode: !input input_heating_system_heating_mode
+  input_heating_system_event_threshold: !input input_heating_system_event_threshold
+
+  # general > persons
+  input_persons: !input input_persons
+  input_persons_entering_home_event_threshold: !input input_persons_entering_home_event_threshold
+  input_persons_leaving_home_event_threshold: !input input_persons_leaving_home_event_threshold
+  input_guest_mode: !input input_guest_mode
+
+  # general > advanced
+  input_automation_log_level: !input input_automation_log_level
+  input_automation_action_delay: !input input_automation_action_delay
+  input_automation_startup_delay: !input input_automation_startup_delay
+
+  # input evaluation ----------------------------------------------------------
+  is_area_windows_defined: "{{ input_area_windows != [] }}"
+  is_area_presence_sensor_defined: "{{ input_area_presence_sensor != [] and input_area_presence_sensor != None }}"
+
+  is_heating_system_heating_mode_defined: "{{ input_heating_system_heating_mode != none }}"
+
+  is_person_defined: "{{ input_persons | count > 0 }}"
+  is_guest_mode_defined: "{{ input_guest_mode != none }}"
+
+trigger:
+  # global > system
+  - trigger: homeassistant
+    event: start
+    id: global_change_system_start
+
+  # global > automation reload
+  - trigger: event
+    event_type: automation_reloaded
+    id: global_change_system_automation_reload
+
+  # global > persons
+  - trigger: template
+    value_template: >
+      {{
+        expand(input_persons)
+        | selectattr('state', 'eq', 'home')
+        | list 
+        | count > 0
+        or (
+          is_guest_mode_defined 
+          and states(input_guest_mode) in ['on', 'active']
+        )
+      }}
+    for: !input input_persons_entering_home_event_threshold
+    id: global_change_person_on
+
+  - trigger: template
+    value_template: >
+      {{
+        expand(input_persons)
+        | selectattr('state', 'eq', 'home')
+        | list 
+        | count == 0
+        and (
+          not is_guest_mode_defined 
+          or (is_guest_mode_defined and states(input_guest_mode) in ['on', 'active'])
+        )
+      }}
+    for: !input input_persons_leaving_home_event_threshold
+    id: global_change_person_off
+
+  # global > heating system
+  - trigger: template
+    value_template: >
+      {{  
+        is_heating_system_heating_mode_defined 
+        and states(input_heating_system_heating_mode) in ['on', 'active']
+      }}
+    for: !input input_heating_system_event_threshold
+    id: global_change_heating_system_heating_mode_on
+
+  - trigger: template
+    value_template: >
+      {{  
+        is_heating_system_heating_mode_defined 
+        and states(input_heating_system_heating_mode) not in ['on', 'active']
+      }}
+    for: !input input_heating_system_event_threshold
+    id: global_change_heating_system_heating_mode_off
+
+  # area > temperature settings
+  - trigger: state
+    entity_id: !input input_area_temperature_settings_eco_entity
+    for: !input input_automation_action_delay
+    id: area_change_temperature_settings_eco
+
+  - trigger: state
+    entity_id: !input input_area_temperature_settings_comfort_entity
+    for: !input input_automation_action_delay
+    id: area_change_temperature_settings_comfort
+
+  # area > thermostat controllers
+  - trigger: state
+    entity_id: !input input_area_thermostat_controllers
+    from:
+      - unknown
+      - unavailable
+    for:
+      seconds: 5
+    id: area_change_thermostat_controller_become_available
+
+  - trigger: state
+    entity_id: !input input_area_thermostat_controllers
+    attribute: target_temp_low
+    for:
+      seconds: 5
+    id: area_change_thermostat_controller_target_temp_low
+
+  - trigger: state
+    entity_id: !input input_area_thermostat_controllers
+    attribute: target_temp_high
+    for:
+      seconds: 5
+    id: area_change_thermostat_controller_target_temp_high
+
+  # area > thermostat valves
+  - trigger: state
+    entity_id: !input input_area_thermostat_valves
+    from:
+      - unknown
+      - unavailable
+    for:
+      seconds: 5
+    id: area_change_thermostat_valve_become_available
+
+  - trigger: state
+    entity_id: !input input_area_thermostat_valves
+    attribute: temperature
+    for:
+      seconds: 5
+    id: area_change_thermostat_valve_target_temp
+
+  # area > thermostat maintenance
+  - trigger: template
+    value_template: >
+      {% if not input_area_thermostat_maintenance_limescale_protection %}
+        {{ false }}
+      {% else %}
+        {% set is_limescale_protection_day = input_area_thermostat_maintenance_limescale_protection_day == now().strftime('%a') %}
+        {% set is_limescale_protection_time = input_area_thermostat_maintenance_limescale_protection_time[:-3] in now().strftime('%H:%M') %}
+        
+        {{ is_limescale_protection_day and is_limescale_protection_time }}
+      {% endif %}
+    id: area_change_thermostat_maintenance_limescale_protection_mode_on
+
+  - trigger: template
+    value_template: >
+      {% if not input_area_thermostat_maintenance_limescale_protection %}
+        {{ false }}
+      {% else %}
+        {% set is_limescale_protection_day = input_area_thermostat_maintenance_limescale_protection_day == now().strftime('%a') %}
+        {% set is_limescale_protection_time = input_area_thermostat_maintenance_limescale_protection_time[:-3] in now().strftime('%H:%M') %}
+        
+        {{ not(is_limescale_protection_day and is_limescale_protection_time) }}
+      {% endif %}
+    id: area_change_thermostat_maintenance_limescale_protection_mode_off
+
+  # area > windows
+  - trigger: template
+    value_template: >
+      {% if is_area_windows_defined %}
+        {{
+          expand(input_area_windows)
+          | selectattr('state', 'in', ['on', 'open', 'tilted'])
+          | list 
+          | count > 0
+        }}
+      {% else %}
+        {{
+          expand(area_entities(input_area_id))
+          | selectattr('domain', 'search', 'sensor')
+          | selectattr('attributes.device_class', 'eq', 'window')
+          | selectattr('state', 'in', ['on', 'open', 'tilted'])
+          | list 
+          | count > 0
+        }}
+      {% endif %}
+    for: !input input_area_windows_opening_event_threshold
+    id: area_change_window_on
+
+  - trigger: template
+    value_template: >
+      {% if is_area_windows_defined %}
+        {{
+          expand(input_area_windows)
+          | selectattr('state', 'in', ['on', 'open', 'tilted'])
+          | list 
+          | count == 0
+        }}
+      {% else %}
+        {{
+          expand(area_entities(input_area_id))
+          | selectattr('domain', 'search', 'sensor')
+          | selectattr('attributes.device_class', 'eq', 'window')
+          | selectattr('state', 'in', ['on', 'open', 'tilted'])
+          | list 
+          | count == 0
+        }}
+      {% endif %}
+    for: !input input_area_windows_closing_event_threshold
+    id: area_change_window_off
+
+  # area > heating schedules
+  - trigger: template
+    value_template: >
+      {% set selected_schedule = none %}
+      {% set schedules_count = input_area_heating_schedules | count %}
+
+      {% if schedules_count == 0 %}
+        {% set selected_schedule = none %}
+      {% elif schedules_count > 0 %}
+        {% set selected_schedule = input_area_heating_schedules | first %}
+      {% endif %}
+
+      {% if selected_schedule == none %}
+        {{ false }}
+      {% else %}
+        {{ is_state(selected_schedule, 'on') }}
+      {% endif %}
+    id: area_change_heating_schedule_on
+
+  - trigger: template
+    value_template: >
+      {% set selected_schedule = none %}
+      {% set schedules_count = input_area_heating_schedules | count %}
+
+      {% if schedules_count == 0 %}
+        {% set selected_schedule = none %}
+      {% elif schedules_count > 0 %}
+        {% set selected_schedule = input_area_heating_schedules | first %}
+      {% endif %}
+
+      {% if selected_schedule == none %}
+        {{ false }}
+      {% else %}
+        {{ is_state(selected_schedule, 'off') }}
+      {% endif %}
+    id: area_change_heating_schedule_off
+
+  # area > presence sensor
+  - trigger: template
+    value_template: >
+      {{ 
+        is_area_presence_sensor_defined
+        and is_state(input_area_presence_sensor, 'on')
+      }}
+    for: !input input_area_presence_sensor_on_event_threshold
+
+  - trigger: template
+    value_template: >
+      {{ 
+        is_area_presence_sensor_defined
+        and is_state(input_area_presence_sensor, 'off')
+      }}
+    for: !input input_area_presence_sensor_off_event_threshold
+
+variables:
+  # ---------------------------------------------------------------------------
+  # Utilities
+  # ---------------------------------------------------------------------------
+  automation_id: "{{ this.entity_id }}"
+  automation_name: "{{ state_attr(this.entity_id,'friendly_name')}}"
+  automation_warnings: []
+
+  current_timestamp: "{{ now() }}"
+
+  system_uptime_sensor: "{{ integration_entities('uptime') | first | default(none) }}"
+  system_uptime_sensor_is_defined: "{{ system_uptime_sensor != none }}"
+  system_uptime: >
+    {% if system_uptime_sensor_is_defined %}
+      {{ states(system_uptime_sensor) | as_datetime }}
+    {% else %}
+      {{ current_timestamp | as_datetime }}
+    {% endif %}
+
+  trigger_id_defined: "{{ trigger.id is defined }}"
+
+  # ---------------------------------------------------------------------------
+  # Inputs
+  # ---------------------------------------------------------------------------
+
+  # area > general
+  input_area_id: !input input_area_id
+
+  # area > temperature settings
+  input_area_temperature_settings_eco_static: !input input_area_temperature_settings_eco_static
+  input_area_temperature_settings_comfort_static: !input input_area_temperature_settings_comfort_static
+  input_area_temperature_settings_eco_entity: !input input_area_temperature_settings_eco_entity
+  input_area_temperature_settings_comfort_entity: !input input_area_temperature_settings_comfort_entity
+
+  # area > thermostats
+  input_area_thermostat_valves: !input input_area_thermostat_valves
+  input_area_thermostat_controllers: !input input_area_thermostat_controllers
+
+  # area > thermostat calibaration
+  input_area_thermostat_calibration_delta: !input input_area_thermostat_calibration_delta
+  input_area_thermostat_calibration_threshold: !input input_area_thermostat_calibration_threshold
+  input_area_thermostat_calibration_reset: !input input_area_thermostat_calibration_reset
+  input_area_temperature_sensors: !input input_area_temperature_sensors
+
+  # area > thermostat maintenance
+  input_area_thermostat_maintenance_limescale_protection: !input input_area_thermostat_maintenance_limescale_protection
+  input_area_thermostat_maintenance_limescale_protection_day: !input input_area_thermostat_maintenance_limescale_protection_day
+  input_area_thermostat_maintenance_limescale_protection_time: !input input_area_thermostat_maintenance_limescale_protection_time
+
+  # area > windows
+  input_area_windows: !input input_area_windows
+  input_area_windows_opening_event_threshold: !input input_area_windows_opening_event_threshold
+  input_area_windows_closing_event_threshold: !input input_area_windows_closing_event_threshold
+
+  # area > heating scheduling
+  input_area_heating_schedules: !input input_area_heating_schedules
+
+  # area > persence sensors
+  input_area_presence_sensor: !input input_area_presence_sensor
+  input_area_presence_sensor_on_event_threshold: !input input_area_presence_sensor_on_event_threshold
+  input_area_presence_sensor_off_event_threshold: !input input_area_presence_sensor_off_event_threshold
+
+  # general > heating system
+  input_heating_system_heating_mode: !input input_heating_system_heating_mode
+  input_heating_system_event_threshold: !input input_heating_system_event_threshold
+
+  # general > persons
+  input_persons: !input input_persons
+  input_persons_entering_home_event_threshold: !input input_persons_entering_home_event_threshold
+  input_persons_leaving_home_event_threshold: !input input_persons_leaving_home_event_threshold
+  input_guest_mode: !input input_guest_mode
+
+  # general > advanced
+  input_automation_log_level: !input input_automation_log_level
+  input_automation_action_delay: !input input_automation_action_delay
+  input_automation_startup_delay: !input input_automation_startup_delay
+
+  # ---------------------------------------------------------------------------
+  # Input Evaluation
+  # ---------------------------------------------------------------------------
+
+  # global > heating system
+  heating_system_heating_mode_is_defined: "{{ input_heating_system_heating_mode != none }}"
+
+  heating_system_heating_mode_is_active: >
+    {% if not heating_system_heating_mode_is_defined %}
+      {{ false }}
+    {% else %}
+      {{ is_state(input_heating_system_heating_mode, 'on') }}
+    {% endif %}
+
+  # global > persons
+  person_is_defined: "{{ input_persons | count > 0 or input_guest_mode != none }}"
+  guest_mode_is_active: "{{ input_guest_mode != none and is_state(input_guest_mode, 'on') }}"
+  anybody_is_home: >
+    {% if guest_mode_is_active %}
+      {{ true }}
+    {% elif not person_is_defined %}
+      {{ false }}
+    {% else %}
+      {% set time_on_threshold = current_timestamp | as_datetime - timedelta(**input_persons_entering_home_event_threshold) %}
+      {% set time_off_threshold = current_timestamp | as_datetime - timedelta(**input_persons_leaving_home_event_threshold) %}
+      {% set uptime_on_threshold = as_datetime(system_uptime) + timedelta(**input_persons_entering_home_event_threshold) %}
+      {% set uptime_off_threshold = as_datetime(system_uptime) + timedelta(**input_persons_leaving_home_event_threshold) %}
+
+      {% if uptime_on_threshold > time_on_threshold or uptime_off_threshold > time_off_threshold %}
+        {{
+          expand(input_persons)
+          | selectattr('state', 'eq', 'home')
+          | list 
+          | count > 0
+        }}
+      {% else %}
+        {% set somebody_is_home = expand(input_persons) 
+                                  | selectattr('state', 'eq', 'home') 
+                                  | selectattr('last_changed', '<=', time_on_threshold) 
+                                  | list 
+                                  | count > 0 %}
+
+        {% set somebody_is_leaving = expand(input_persons) 
+                                      | selectattr('state', 'eq', 'home') 
+                                      | selectattr('last_changed', '>', time_off_threshold) 
+                                      | list 
+                                      | count > 0 %}
+        
+        {{ somebody_is_home or somebody_is_leaving }}
+      {% endif %}
+    {% endif %}
+
+  # area > temperature settings
+  area_temperature_settings_comfort_entity: >
+    {% if input_area_temperature_settings_comfort_entity != none %}
+      {{ states(input_area_temperature_settings_comfort_entity) | float }}
+    {% else %}
+      {{ none }}
+    {% endif %}
+
+  area_temperature_settings_eco_entity: >
+    {% if input_area_temperature_settings_eco_entity != none %}
+      {{ states(input_area_temperature_settings_eco_entity) | float }}
+    {% else %}
+      {{ none }}
+    {% endif %}
+
+  area_temperature_settings_comfort: "{{ [area_temperature_settings_comfort_entity, input_area_temperature_settings_comfort_static] | reject('==', none) | first }}"
+  area_temperature_settings_eco: "{{ [area_temperature_settings_eco_entity, input_area_temperature_settings_eco_static] | reject('==', none) | first }}"
+
+  # area > thermostat controllers
+  area_thermostat_controllers: >
+    {% if input_area_thermostat_controllers != [] %}
+      {{ 
+        expand(input_area_thermostat_controllers)
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id')
+        | list
+      }}
+    {% else %}
+      {{ 
+        expand(area_entities(input_area_id))
+        | selectattr('domain', 'eq', 'climate') 
+        | selectattr('attributes.target_temp_high', 'defined') 
+        | selectattr('attributes.target_temp_low', 'defined') 
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id') 
+        | list
+      }}
+    {% endif %}
+
+  area_thermostat_controllers_available: "{{ area_thermostat_controllers | count > 0 }}"
+
+  # area > thermostat valves
+  area_thermostat_valves: >
+    {% if input_area_thermostat_valves != [] %}
+      {{
+        expand(input_area_thermostat_valves)
+        | selectattr('attributes.temperature', 'defined') 
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id') 
+        | list 
+      }}
+    {% else %}
+      {{
+        expand(area_entities(input_area_id))
+        | selectattr('domain', 'eq', 'climate') 
+        | selectattr('attributes.temperature', 'defined') 
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id') 
+        | list 
+      }}
+    {% endif %}
+
+  area_thermostat_valves_available: "{{ area_thermostat_valves | count > 0 }}"
+
+  area_thermostat_valves_off_mode: >
+    {{ 
+      expand(area_thermostat_valves)
+      | selectattr('attributes.hvac_modes', 'search', '(?i)off')
+      | map(attribute='entity_id')
+      | list
+    }}
+
+  area_thermostat_valves_no_off_mode: >
+    {{ 
+      area_thermostat_valves
+      | reject('in', area_thermostat_valves_off_mode)
+      | list
+    }}
+
+  # area > windows
+  area_windows: >
+    {% if input_area_windows != [] %}
+      {{
+        expand(input_area_windows)
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id')
+        | list
+      }}
+    {% else %}
+      {{ 
+        expand(area_entities(input_area_id))
+        | selectattr('domain', 'search', 'sensor') 
+        | selectattr('attributes.device_class', 'defined') 
+        | selectattr('attributes.device_class', 'eq', 'window') 
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id') 
+        | list 
+      }}
+    {% endif %}
+
+  has_open_windows: >
+    {% set current_ts = current_timestamp | as_datetime %}
+    {% set threshold_on_state = current_ts - timedelta(**input_area_windows_opening_event_threshold) %}
+    {% set threshold_off_state = current_ts - timedelta(**input_area_windows_closing_event_threshold) %}
+
+    {% set windows_open = expand(area_windows) 
+                          | selectattr('state', 'in', ['on','open','tilted'])
+                          | selectattr('last_changed', '<=', threshold_on_state)
+                          | list 
+                          | count > 0 %}
+
+    {% set windows_closed_but_threshold_not_reached = expand(area_windows)
+                          | selectattr('state', 'in', ['off','closed'])
+                          | selectattr('last_changed', '>=', threshold_off_state)
+                          | list
+                          | count > 0 %}
+
+    {{ windows_open or windows_closed_but_threshold_not_reached }}
+
+  # area > maintenance
+  area_limescale_protection_is_active: >
+    {% if not input_area_thermostat_maintenance_limescale_protection %}
+      {{ false }}
+    {% else %}
+      {% set current_ts = current_timestamp | as_datetime %}
+      {% set is_limescale_protection_day = input_area_thermostat_maintenance_limescale_protection_day == current_ts.strftime('%a') %}
+      {% set is_limescale_protection_time = input_area_thermostat_maintenance_limescale_protection_time[:-3] == current_ts.strftime('%H:%M') %}
+
+      {{ is_limescale_protection_day and is_limescale_protection_time }}
+    {% endif %}
+
+  # area > heating scheduling
+  area_heating_scheduler: >
+    {% set schedules_count = input_area_heating_schedules | count %}
+
+    {% if schedules_count == 0 %}
+      {% set primary_scheduler = none %}
+    {% elif schedules_count >= 1 %}
+      {% set primary_scheduler = input_area_heating_schedules | first %}
+    {% endif %}
+
+    {{ primary_scheduler }}
+
+  area_heating_scheduler_is_defined: "{{ area_heating_scheduler != none }}"
+  area_heating_scheduler_is_active: >
+    {{ 
+      area_heating_scheduler_is_defined
+      and is_state(area_heating_scheduler, 'on') 
+    }}
+
+  # area > presence sensor
+  area_presence_sensor_is_defined: "{{ input_area_presence_sensor != none }}"
+
+  area_presence_is_detected: >
+    {% if not area_presence_sensor_is_defined %}
+      {{ false }}
+    {% else %}
+      {% set current_ts = current_timestamp | as_datetime %}
+      {% set sensor_last_changed = state_attr(input_area_presence_sensor, 'last_changed') %}
+      {% set presence_detected = is_state(input_area_presence_sensor, 'on') %}
+
+      {% set reaction_time = iif(presence_detected, input_area_presence_sensor_on_event_threshold, input_area_presence_sensor_off_event_threshold) %}
+      {% set reaction_time_threshold = iif(sensor_last_changed != none, sensor_last_changed, current_ts) + timedelta(**reaction_time) %}
+
+      {% if 
+        system_uptime_sensor_is_defined 
+        and as_datetime(system_uptime) + timedelta(**reaction_time) > current_ts - timedelta(**reaction_time) 
+      %}
+        {{ presence_detected }}
+      {% else %}
+        {% set reaction_time_exceeded = reaction_time_threshold <= current_ts %}
+        
+        {{ 
+          (presence_detected == true and reaction_time_exceeded) 
+          or (presence_detected == false and not reaction_time_exceeded)
+        }}
+      {% endif %}
+    {% endif %}
+
+  # area > temperature sensors
+  area_temperature_sensors: >
+    {% if input_area_temperature_sensors != [] %}
+      {{
+        expand(input_area_temperature_sensors)
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id')
+        | list
+      }}
+    {% else %}
+      {{ 
+        expand(area_entities(input_area_id))
+        | selectattr('domain', 'search', 'sensor') 
+        | selectattr('attributes.device_class', 'defined') 
+        | selectattr('attributes.device_class', 'eq', 'temperature') 
+        | rejectattr('state', 'in', ['unknown', 'unavailable']) 
+        | map(attribute='entity_id') 
+        | list 
+      }}
+    {% endif %}
+
+  area_temperature_sensors_available: "{{ area_temperature_sensors | count > 0 }}"
+
+  area_temperature_sensors_states: >
+    {% set n = namespace(states=[]) %}
+
+    {% if area_temperature_sensors_available %}  
+      {% for temperature_sensor in area_temperature_sensors %}
+        {% set n.states = n.states + [states(temperature_sensor) | float] %}
+      {% endfor %}
+    {% endif %}
+
+    {% if n.states | count == 0 %}
+      {{ none }}
+    {% else %}
+      {{ n.states | list }}
+    {% endif %}
+
+  area_temperature: >
+    {% set n = namespace(values=[]) %}
+
+    {% if area_temperature_sensors_available %}  
+      {% for temperature_sensor in area_temperature_sensors %}
+        {% set n.values = n.values + [states(temperature_sensor) | float] %}
+      {% endfor %}
+    {% elif area_thermostat_controllers_available %}
+      {% for controller in area_thermostat_controllers %}
+        {% set n.values = n.values + [state_attr(controller, 'current_temperature') | float] %}
+      {% endfor %}
+    {% endif %}
+
+    {% if n.values | count == 0 %}
+      {{ none }}
+    {% else %}
+      {{ (n.values | sum) / (n.values | count) | float }}
+    {% endif %}
+
+  set_comfort_temperature: >
+    {% if not area_heating_scheduler_is_defined and not area_presence_sensor_is_defined %}
+      {{ anybody_is_home }}
+    {% else %}
+      {% set comfort_state_status = area_heating_scheduler_is_active %}
+
+      {% if person_is_defined %}
+        {{ anybody_is_home and comfort_state_status }}
+      {% else %}
+        {{ comfort_state_status }}
+      {% endif %}
+    {% endif %}
+
+  set_max_temperature: "{{ area_limescale_protection_is_active }}"
+
+  area_target_temperature: "{{ iif(set_comfort_temperature, area_temperature_settings_comfort, area_temperature_settings_eco) }}"
+
+  area_hvac_mode: >
+    {% if heating_system_heating_mode_is_defined and not heating_system_heating_mode_is_active %}
+      {{ 'off' }}
+    {% elif has_open_windows and not set_max_temperature %}
+      {{ 'off' }}
+    {% else %}
+      {{ 'heat' }}
+    {% endif %}
+
+  # ---------------------------------------------------------------------------
+  # Trigger Evaluation
+  # ---------------------------------------------------------------------------
+
+  is_change_trigger: >
+    {{ 
+      trigger_id_defined
+      and (
+        'global_change' in trigger.id
+        or 'area_change' in trigger.id
+      )
+      and not 'thermostat_controller_target_temp' in trigger.id
+    }}
+
+  is_physical_change: >
+    {{
+      trigger_id_defined
+      and (
+        'thermostat_controller_target_temp' in trigger.id
+        or 'thermostat_valve_target_temp' in trigger.id
+      )
+      and trigger.to_state.context.user_id == none
+    }}
+
+  is_temperature_settings_changes_trigger: >
+    {{ 
+      trigger_id_defined
+      and is_physical_change
+      and 'thermostat_controller_target_temp_low' in trigger.id
+      and trigger.from_state.state == 'heat'
+      and trigger.to_state.state == 'heat'
+    }}
+
+  is_thermostat_calibration_trigger: >
+    {{
+      trigger_id_defined
+      and ( 
+        'calibration' in trigger.id
+        or trigger.id == 'global_change_system_automation_reload'
+      )
+    }}
+
+  is_thermostat_changes_trigger: >
+    {% if has_open_windows %}
+      {% if trigger_id_defined and 'area_change_window_on' in trigger.id %}
+        {{ true }}
+      {% elif trigger_id_defined and 'area_change_window_off' not in trigger.id %}
+        {{ false }}
+      {% endif %}
+    {% elif trigger.platform == none %}
+      {{ true }}
+    {% elif trigger_id_defined and 'area_change_thermostat_controller_target_temp' in trigger.id %}
+      {{ false }}
+    {% elif trigger_id_defined and 'area_change_thermostat_valve_target_temp' in trigger.id %}
+      {{ false }}
+    {% else %}
+      {{ trigger_id_defined and ('global_change' in trigger.id or 'area_change' in trigger.id) }}
+    {% endif %}
+
+  # # ---------------------------------------------------------------------------
+  # # Actions
+  # # ---------------------------------------------------------------------------
+
+  # temperature setting > change ----------------------------------------------
+  temperature_settings_changes_tasks_v1: >
+    {% set n = namespace(tasks=[]) %}
+
+    {% if is_temperature_settings_changes_trigger and input_area_temperature_settings_comfort_entity != [] %}
+      {% set attr_id = trigger.attribute %}
+      {% set attr_state = trigger.to_state.attributes[attr_id] %}
+
+      {% if attr_state != area_temperature_settings_comfort %}
+        {% set n.tasks = n.tasks + [{'entity_id': input_area_temperature_settings_comfort_entity, 'value': attr_state}] %}
+      {% endif %}
+    {% endif %}
+
+    {{ n.tasks }}
+
+  temperature_settings_changes_tasks: >
+    {% set n = namespace(tasks=[]) %}
+
+    {% set temperature_settings_entity = iif(set_comfort_temperature, input_area_temperature_settings_comfort_entity, input_area_temperature_settings_eco_entity) %}
+    {% set temperature_settings_entity_is_defined = "{{ temperature_settings_entity != [] }}" %}
+
+    {% if is_temperature_settings_changes_trigger and temperature_settings_entity_is_defined %}
+      {% set attr_id = trigger.attribute %}
+      {% set attr_state = trigger.to_state.attributes[attr_id] %}
+
+      {% if float(attr_state) != float(states(temperature_settings_entity)) %}
+        {% set n.tasks = n.tasks + [{'entity_id': temperature_settings_entity, 'value': attr_state}] %}
+      {% endif %}
+    {% endif %}
+
+    {{ n.tasks }}
+
+  # # thermostat > calibration --------------------------------------------------
+  thermostat_calibration_tasks: >
+    {% set n = namespace(tasks=[]) %}
+
+    {% if is_thermostat_calibration_trigger and area_temperature != none %}
+      {% if area_temperature_sensors_available and area_thermostat_controllers_available %}
+        {% set calibration_targets = area_thermostat_valves + area_thermostat_controllers %}
+      {% else %}
+        {% set calibration_targets = area_thermostat_valves %}
+      {% endif %}
+      
+      {% for calibration_target in calibration_targets %}
+        {% set calibration_entities = device_entities(device_id(calibration_target))
+                                      | expand
+                                      | selectattr('domain', 'in', 'number')
+                                      | selectattr('entity_id', 'search', '(calibration|offset)')
+                                      | map(attribute='entity_id')
+                                      | list %}
+
+        {% if calibration_entities | count > 0 %}
+          {% set calibration_entity = calibration_entities| first %}
+          {% set calibration_offset_old = states(calibration_entity) | float(0) %}
+          {% set calibration_value_min = state_attr(calibration_entity, 'min') | float %}
+          {% set calibration_value_max = state_attr(calibration_entity, 'max') | float %}
+          {% set calibration_step = state_attr(calibration_entity, 'step') | float(1) %}
+          {% set round_precision = iif('.' in (calibration_step | string), (calibration_step | string).split('.')[1] | length, 0 ) %}
+
+          {% set calibration_target_temperature = state_attr(calibration_target, 'current_temperature') | float %}
+
+          {% set calibration_value = (-(calibration_target_temperature - area_temperature) + calibration_offset_old) %}
+
+          {% set calibration_value = iif(calibration_value > calibration_value_max, calibration_value_max, calibration_value) %}
+          {% set calibration_value = iif(calibration_value < calibration_value_min, calibration_value_min, calibration_value) %}
+
+          {% set calibration_offset_new = (calibration_value | float(0) / calibration_step) | round(0) * calibration_step | round(round_precision) | float %}
+
+          {% if (float(calibration_offset_old) - float(calibration_offset_new)) | abs >= float(input_area_thermostat_calibration_delta) %}
+            {% set n.tasks = n.tasks + [{'target': calibration_target, 'entity_id': calibration_entity, 'value': calibration_offset_new}] %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    {{ n.tasks }}
+
+  # thermostat > changes ------------------------------------------------------
+  thermostat_changes_tasks: >
+    {% set n = namespace(tasks=[]) %}
+
+    {% if is_thermostat_changes_trigger %}
+      {% for valve in area_thermostat_valves %}
+        {% set min_temp = state_attr(valve, 'min_temp') | float(5) %}
+        {% set max_temp = state_attr(valve, 'max_temp') | float(30) %}
+        {% set current_hvac_mode = states(valve) %}
+        {% set current_target_temp = state_attr(valve, 'temperature') | float(temperature) %}
+        {% set prevent_turn_off = valve in area_thermostat_valves_no_off_mode or set_max_temperature %}
+
+        {% set hvac_mode = iif(area_hvac_mode == 'off' and prevent_turn_off, current_valve_mode, area_hvac_mode) %}
+
+        {% set target_temp = area_target_temperature %}
+
+        {% set target_temp = iif(set_max_temperature, max_temp, target_temp) %}
+        {% set target_temp = iif(target_temp > max_temp, max_temp, target_temp) %}
+        {% set target_temp = iif(target_temp < min_temp, min_temp, target_temp) %}
+
+        {% if hvac_mode != current_hvac_mode or float(target_temp) != float(current_target_temp) %}
+          {% set n.tasks = n.tasks + [{
+              'target': valve, 
+              'hvac_mode': hvac_mode, 
+              'target_temp': target_temp
+            }] %}
+        {% endif %}
+      {% endfor %}
+
+      {% for controller in area_thermostat_controllers %}
+        {% set min_temp = state_attr(controller, 'min_temp') | float %}
+        {% set max_temp = state_attr(controller, 'max_temp') | float %}
+
+        {% set current_hvac_mode = states(controller) %}
+        {% set current_target_temp = state_attr(controller, 'target_temp_low') | float %}
+
+        {% set hvac_mode = area_hvac_mode %}
+
+        {% set target_temp = area_target_temperature | float %}
+        {% set target_temp = iif(target_temp < min_temp, min_temp, target_temp) %}
+        {% set target_temp = iif(target_temp > max_temp, max_temp, target_temp) %}
+
+        {% if hvac_mode != current_hvac_mode or float(target_temp) != float(current_target_temp) %}
+          {% set n.tasks = n.tasks + [{
+              'target': controller, 
+              'hvac_mode': hvac_mode, 
+              'target_temp': target_temp
+            }] %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    {{ n.tasks }}
+
+  # ---------------------------------------------------------------------------
+  # Conditions
+  # ---------------------------------------------------------------------------
+
+  temperature_settings_changes_trigger: "{{ is_temperature_settings_changes_trigger and temperature_settings_changes_tasks | count > 0 }}"
+  thermostat_changes_trigger: "{{ is_thermostat_changes_trigger and thermostat_changes_tasks | count > 0 }}"
+  thermostat_calibration_trigger: "{{ is_thermostat_calibration_trigger and thermostat_calibration_tasks | count > 0 }}"
+
+conditions:
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ temperature_settings_changes_trigger }}"
+      - condition: template
+        value_template: "{{ thermostat_calibration_trigger }}"
+      - condition: template
+        value_template: "{{ thermostat_changes_trigger }}"
+
+actions:
+  - variables:
+      automation_delayed: >
+        {{
+          not (
+            not system_uptime_sensor_is_defined
+            or (now() | as_datetime - states(system_uptime_sensor) | as_datetime) > timedelta(**input_automation_startup_delay)
+          )
+        }}
+
+  - action: system_log.write
+    data:
+      logger: blueprints.vslprts.area_heating_control
+      level: !input input_automation_log_level
+      message: >
+        {{ 
+          '[' + automation_id | string + ']' + '\n' +
+          'automation_delayed: ' + automation_delayed | string
+        }}
+
+  - wait_template: >
+      {{
+        not system_uptime_sensor_is_defined
+        or (now() | as_datetime - states(system_uptime_sensor) | as_datetime) > timedelta(**input_automation_startup_delay)
+      }}
+
+  - choose:
+      - conditions: "{{ automation_delayed }}"
+        sequence:
+          sequence:
+            - event: area_heating_control_delay_event
+              event_data:
+                automation_id: "{{ automation_id }}"
+
+    default:
+      - if:
+          - condition: template
+            value_template: "{{ automation_warnings | count > 0 }}"
+        then:
+          - action: system_log.write
+            data:
+              logger: blueprints.vslprts.area_heating_control
+              level: warning
+              message: >
+                {{ 
+                  '[' + automation_id | string + ']' + '\n' +
+                  'warnings: ' + automation_warnings | join('\n')
+                }}
+
+      - event: area_heating_control_event
+        event_data:
+          automation_id: "{{ automation_id }}"
+          automation_warnings: "{{ automation_warnings }}"
+          area_hvac_mode: "{{ area_hvac_mode }}"
+          area_target_temperatue: "{{ area_target_temperature }}"
+          area_thermostat_controllers: "{{ area_thermostat_controllers }}"
+          area_thermostat_valves: "{{ area_thermostat_valves }}"
+
+      # -----------------------------------------------------------------------
+      # Temperature Settings Adjustments
+      # -----------------------------------------------------------------------
+      - if:
+          - condition: template
+            value_template: "{{ temperature_settings_changes_trigger }}"
+        then:
+          - action: system_log.write
+            data:
+              logger: blueprints.vslprts.area_heating_control
+              level: !input input_automation_log_level
+              message: >
+                {{ 
+                  '[' + automation_id | string + '][temperature_settings::change]' + '\n' +
+                  'tasks: ' + temperature_settings_changes_tasks | string 
+                }}
+
+          - repeat:
+              for_each: "{{ temperature_settings_changes_tasks }}"
+              sequence:
+                - variables:
+                    task: "{{ repeat.item }}"
+
+                - action: system_log.write
+                  data:
+                    logger: blueprints.vslprts.area_heating_control
+                    level: !input input_automation_log_level
+                    message: >
+                      {{ 
+                        '[' + automation_id | string + '][temperature_settings::change]' + '\n' +
+                        'entity_id: ' + task.entity_id | string + '\n' + 
+                        'value: ' + task.value | string
+                      }}
+
+                - action: input_number.set_value
+                  data:
+                    value: "{{ float(task.value) }}"
+                  target:
+                    entity_id: "{{ task.entity_id }}"
+
+                - delay: !input input_automation_action_delay
+
+      # -----------------------------------------------------------------------
+      # Thermostat Calibration
+      # -----------------------------------------------------------------------
+      - if:
+          - condition: template
+            value_template: "{{ thermostat_calibration_trigger }}"
+        then:
+          - action: system_log.write
+            data:
+              logger: blueprints.vslprts.area_heating_control
+              level: !input input_automation_log_level
+              message: >
+                {{ 
+                  '[' + automation_id | string + '][thermostat::calibrations]' + '\n' +
+                  'tasks: ' + thermostat_calibration_tasks | string
+                }}
+
+          - repeat:
+              for_each: "{{ thermostat_calibration_tasks }}"
+              sequence:
+                - variables:
+                    task: "{{ repeat.item }}"
+
+                - action: system_log.write
+                  data:
+                    logger: blueprints.vslprts.area_heating_control
+                    level: !input input_automation_log_level
+                    message: >
+                      {{ 
+                        '[' + automation_id | string + '][thermostat::calibration]' + '\n' +
+                        'target: ' + task.target | string + '\n' + 
+                        'entity_id: ' + task.entity_id | string + '\n' + 
+                        'offset: ' + task.value | string
+                      }}
+
+                - delay: !input input_automation_action_delay
+
+      - if:
+          - condition: template
+            value_template: "{{ thermostat_changes_trigger }}"
+        then:
+          - action: system_log.write
+            data:
+              logger: blueprints.vslprts.area_heating_control
+              level: !input input_automation_log_level
+              message: >
+                {{ 
+                  '[' + automation_id | string + '][thermostat::changes]' + '\n' +
+                  'tasks: ' + thermostat_changes_tasks | string
+                }}
+
+          - repeat:
+              for_each: "{{ thermostat_changes_tasks }}"
+              sequence:
+                - variables:
+                    task: "{{ repeat.item }}"
+
+                - action: system_log.write
+                  data:
+                    logger: blueprints.vslprts.area_heating_control
+                    level: !input input_automation_log_level
+                    message: >
+                      {{ 
+                        '[' + automation_id | string + '][thermostat::change]' + '\n' +
+                        'target: ' + task.target | string + '\n' + 
+                        'hvac_mode: ' + task.hvac_mode | string + '\n' + 
+                        'target_temp: ' + task.target_temp | string
+                      }}
+
+                - if:
+                    - condition: template
+                      value_template: >
+                        {{
+                          states(task.target) != task.hvac_mode
+                        }}
+                  then:
+                    - action: climate.set_hvac_mode
+                      data:
+                        entity_id: "{{ task.target }}"
+                        hvac_mode: "{{ task.hvac_mode }}"
+
+                    - delay: !input input_automation_action_delay
+
+                - if:
+                    - condition: template
+                      value_template: >
+                        {{
+                          task.hvac_mode != 'off'
+                        }}
+                  then:
+                    - if:
+                        - condition: template
+                          value_template: >
+                            {{
+                              state_attr(task.target, 'target_temp_low') != none
+                              and state_attr(task.target, 'target_temp_low') != task.target_temp
+                            }}
+                      then:
+                        - action: climate.set_temperature
+                          data:
+                            entity_id: "{{ task.target }}"
+                            target_temp_low: "{{ float(task.target_temp) }}"
+                            target_temp_high: "{{ float(task.target_temp) }}"
+
+                        - delay: !input input_automation_action_delay
+
+                    - if:
+                        - condition: template
+                          value_template: >
+                            {{
+                              state_attr(task.target, 'temperature') != none
+                              and state_attr(task.target, 'temperature') != task.target_temp
+                            }}
+                      then:
+                        - action: climate.set_temperature
+                          data:
+                            entity_id: "{{ task.target }}"
+                            temperature: "{{ task.target_temp }}"
+
+                        - delay: !input input_automation_action_delay
+
+mode: queued
