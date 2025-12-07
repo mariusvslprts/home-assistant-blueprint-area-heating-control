@@ -33,6 +33,8 @@ jobs:
         ha_version: ["stable", "dev"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Determine Python version
         id: detect_python_version
         run: |
@@ -41,7 +43,7 @@ jobs:
           PY_VER_FILE=".python-version"
 
           if [ "${{ matrix.ha_version }}" = "dev" ]; then
-            git fetch origin $DEV_BRANCH
+            git fetch origin $DEV_BRANCH:$DEV_BRANCH
             git checkout $DEV_BRANCH
           fi
 
