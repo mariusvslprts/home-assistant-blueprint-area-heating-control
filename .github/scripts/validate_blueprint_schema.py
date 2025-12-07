@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
+
 import os
+import glob
 import yaml
 import sys
-import glob
 
 VALID_MODES = ["single", "restart", "queued", "parallel"]
+IGNORED_TAGS = ['!input', '!secret', '!state']
+
+def ignore_unknown_tags(loader, tag_suffix, node):
+    return node.value
+
+for tag in IGNORED_TAGS:
+    yaml.add_multi_constructor(tag, ignore_unknown_tags, Loader=yaml.SafeLoader)
 
 def validate_blueprint(file_path):
     errors = []
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+            data = yaml.load(f, Loader=yaml.SafeLoader)
     except Exception as e:
         return [f"{file_path}: YAML parsing error: {e}"]
 
@@ -46,14 +54,13 @@ def validate_blueprint(file_path):
 
     return errors
 
-
 def main():
     yaml_files = glob.glob("**/*.yaml", recursive=True) + glob.glob("**/*.yml", recursive=True)
 
     if not yaml_files:
         print(f"⚠️ No Blueprint files found")
         return True
-    
+
     problems = []
 
     for file_path in yaml_files:
@@ -66,7 +73,6 @@ def main():
         sys.exit(1)
 
     print("✅ Blueprint Validation OK for all YAML files.")
-
 
 if __name__ == "__main__":
     main()
