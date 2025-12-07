@@ -33,15 +33,41 @@ jobs:
         ha_version: ["stable", "dev"]
     steps:
       - uses: actions/checkout@v4
+      - name: Determine Python version
+        id: python_version
+        run: |
+          if [ "${{ matrix.ha_version }}" = "stable" ]; then
+            if [ -f ".python-version" ]; then
+              echo "python_version=$(cat .python-version)" >> $GITHUB_OUTPUT
+            else
+              echo "python_version=3.11" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Dev: aus requirements_all.txt ermitteln
+            DEV_BRANCH="dev"
+            git fetch origin $DEV_BRANCH
+            git checkout $DEV_BRANCH
+            REQ_FILE="requirements_all.txt"
+            PY_VER=$(grep -Po 'python_version\s*==\s*\K[0-9]+\.[0-9]+' "$REQ_FILE" | head -n1)
+            if [ -z "$PY_VER" ]; then
+              PY_VER="3.12"
+            fi
+            echo "python_version=$PY_VER" >> $GITHUB_OUTPUT
+            git checkout -  # zurück zum ursprünglichen Branch
+          fi
+          echo "Detected Python version: ${{ steps.python_version.outputs.python_version }}"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ steps.python_version.outputs.python_version }}
       - name: Cache pip packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ha-${{ matrix.ha_version }}-${{ hashFiles('**/*.yaml') }}
+          restore-keys: |
+            ha-${{ matrix.ha_version }}-
       - name: Install Home Assistant (${{ matrix.ha_version }})
         run: |
           pip install --upgrade pip
